@@ -1,0 +1,77 @@
+what
+~~~~
+
+   Simple and easy to use access logging class for PHP websites
+
+   Features:
+
+     - Easy to use
+     - Didn't need database access, sqlite is used 
+     - Log and display requests,referrers,useragents,operating systems and hosts
+     - Save logs for different websites/events in one database
+     - Display logs filtered for website/event and date
+
+author
+~~~~~~
+
+   Andreas Schuler <andreas at schulerdev.de>
+
+
+license
+~~~~~~~
+
+   GNU GENERAL PUBLIC LICENSE Version 2
+   see LICENSE
+
+
+usage
+~~~~~
+
+   Add the lines:
+
+   include "logaccess.php";
+   logaccess::log(<logfile>,<event>);
+
+   to your index.php or any other file from where the access shall be logged.
+   Replace <logfile> with a filename like "access.log" and <event> with a
+   number to distinguish between different events. The most people simply can 
+   insert 1. Do not use 0.
+
+   -> logaccess::log("access.log",1);
+
+   
+   Add the lines:
+
+   .bar {
+   background-color:#738f14;
+   border:1px solid #839f24;
+   line-height:14px;
+   }
+
+   .barlabel {
+   margin:-16px 0 0 0;
+   line-height:16px;
+   white-space:pre;
+   vertical-align: middle;
+   }
+
+   to your CSS file and change the colors for your need.
+
+
+   Now your Website has logging support. To show the logged informations 
+   you can use this functions:
+
+   logaccess::display_requests(<logfile>,<event>,<starttime>,<endtime>;
+   logaccess::display_referers(<logfile>,<event>,<displayfull>,<starttime>,<endtime>);
+   logaccess::display_useragents(<logfile>,<event>,<starttime>,<endtime>);
+   logaccess::display_systems(<logfile>,<event>,<starttime>,<endtime>);
+   logaccess::display_hosts(<logfile>,<event>,<starttime>,<endtime>);
+
+   <logfile>     : the filename of the logfile
+   <event>       : the event id you used in the log() call. If you want all events, use 0
+   <starttime>   : unixtime of the first event that should be shown
+                   if you don't want to filter for starttime use 0 or leave empty
+   <endtime>     : unixtime of the last event that should be shown
+                   if you don't want to filter for stoptime leave empty
+   <displayfull> : 1=display complete referer url
+                   0=display only referrer url

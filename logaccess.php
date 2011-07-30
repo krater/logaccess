@@ -1,0 +1,247 @@
+<?php
+
+class logaccess
+{
+  function log($logfile,$customid=1)
+  {
+    $db=logaccess::open_logdb($logfile);
+    if(!$db)
+      return;
+
+    sqlite_query($db,"INSERT INTO access_logs (unixtime,ip,host,path,useragent,".
+                    "referer,method,customid) VALUES (".time().
+                    ",'".sqlite_escape_string($_SERVER['REMOTE_ADDR']).
+                    "','".sqlite_escape_string($_SERVER["HTTP_HOST"]).
+                    "','".sqlite_escape_string($_SERVER["REQUEST_URI"]).
+                    "','".sqlite_escape_string($_SERVER["HTTP_USER_AGENT"]).
+                    "','".sqlite_escape_string($_SERVER["HTTP_REFERER"]).
+                    "','".sqlite_escape_string($_SERVER["REQUEST_METHOD"]).
+                    "',".((int)$customid).");");
+
+    sqlite_close($db);
+  }
+
+  function open_logdb($logfile)
+  {
+    if(!file_exists($logfile))
+    {
+      if(!($db=sqlite_open($logfile)))
+        return 0;
+
+      sqlite_query($db,"CREATE TABLE access_logs (id INTEGER PRIMARY KEY,unixtime INTEGER,".
+                        " ip TEXT, host TEXT, path TEXT, useragent TEXT, referer TEXT,".
+                        " method TEXT, customid INTEGER);");
+
+      sqlite_close($db);
+    }
+
+    if(!($db=sqlite_open($logfile)))
+      return 0;
+
+    return $db;
+  }
+
+
+  // -------------------------------- Display functions --------------------------------
+  function display_requests($logfile,$customid=0,$starttime=0,$endtime=9999999999)
+  {
+    $db=logaccess::open_logdb($logfile);
+
+    if($db)
+    {
+      if($customid)
+        $filter=" AND customid=".((int)$customid);
+      else
+        $filter="";
+
+      $logcnts=sqlite_query($db,"SELECT count(*) AS cnt FROM access_logs WHERE unixtime>=".((int)$starttime).
+                                " AND unixtime<=".((int)$endtime).$filter);
+
+      $logcnt=sqlite_fetch_array($logcnts);
+
+      $logs=sqlite_query($db,"SELECT path,count(*) AS cnt FROM access_logs WHERE unixtime>=".((int)$starttime).
+                                " AND unixtime<=".((int)$endtime).$filter." GROUP BY path ORDER BY cnt DESC");
+
+      while($log=sqlite_fetch_array($logs))
+      {
+        echo '<div class="bar" style="width:'.(100/$logcnt['cnt']*$log['cnt']).'%">&nbsp;</div>'."\n".
+              '<div class="barlabel">'.$log['cnt'].': <a href="'.$log['path'].'">'.$log['path'].'</a></div>'."\n";
+      }
+    }
+
+    sqlite_close($db);
+  }
+
+  function display_referers($logfile,$customid=0,$fullreferers=1,$starttime=0,$endtime=9999999999)
+  {
+    $db=logaccess::open_logdb($logfile);
+
+    if($db)
+    {
+      if($customid)
+        $filter=" AND customid=".((int)$customid);
+      else
+        $filter="";
+
+      if($fullreferers)
+      {
+        $logcnts=sqlite_query($db,"SELECT count(*) AS cnt FROM access_logs WHERE unixtime>=".((int)$starttime).
+                                  " AND unixtime<=".((int)$endtime).$filter);
+
+        $logcnt=sqlite_fetch_array($logcnts);
+      }
+
+      $logs=sqlite_query($db,"SELECT referer,count(*) AS cnt FROM access_logs WHERE unixtime>=".((int)$starttime).
+                                " AND unixtime<=".((int)$endtime).$filter." GROUP BY referer ORDER BY cnt DESC");
+
+      if($fullreferers)
+      {
+        while($log=sqlite_fetch_array($logs))
+        {
+          echo '<div class="bar" style="width:'.(100/$logcnt['cnt']*$log['cnt']).'%">&nbsp;</div>'."\n".
+                '<div class="barlabel">'.$log['cnt'].': <a href="'.$log['referer'].'">'.$log['referer'].'</a></div>'."\n";
+        }
+      }
+      else
+      {
+        unset($domains);
+        $logcnt=0;
+        while($log=sqlite_fetch_array($logs))
+        {
+          if(strlen($log['referer'])>7)
+          {
+            $pos=strpos($log['referer'],'/',7);
+            if($pos)
+            {
+              $domain=substr($log['referer'],0,$pos);
+              $domains[$domain]+=$log['cnt'];
+              $logcnt+=$log['cnt'];
+            }
+          }
+        }
+
+        foreach($domains as $domain => $cnt)
+        {
+          echo '<div class="bar" style="width:'.(100/$logcnt*$cnt).'%">&nbsp;</div>'."\n".
+                '<div class="barlabel">'.$cnt.': <a href="'.$domain.'">'.$domain.'</a></div>'."\n";
+        }
+      }
+    }
+
+    sqlite_close($db);
+  }
+
+
+  function display_useragents($logfile,$customid=0,$starttime=0,$endtime=9999999999)
+  {
+    $db=logaccess::open_logdb($logfile);
+
+    if($db)
+    {
+      if($customid)
+        $filter=" AND customid=".((int)$customid);
+      else
+        $filter="";
+
+      $logcnts=sqlite_query($db,"SELECT count(*) AS cnt FROM access_logs WHERE unixtime>=".((int)$starttime).
+                                " AND unixtime<=".((int)$endtime).$filter);
+
+      $logcnt=sqlite_fetch_array($logcnts);
+
+      $logs=sqlite_query($db,"SELECT useragent,count(*) AS cnt FROM access_logs WHERE unixtime>=".((int)$starttime).
+                                " AND unixtime<=".((int)$endtime).$filter." GROUP BY useragent ORDER BY cnt DESC");
+
+      while($log=sqlite_fetch_array($logs))
+      {
+        echo '<div class="bar" style="width:'.(100/$logcnt['cnt']*$log['cnt']).'%">&nbsp;</div>'."\n".
+              '<div class="barlabel">'.$log['cnt'].': '.$log['useragent'].'</div>'."\n";
+      }
+    }
+
+    sqlite_close($db);
+  }
+
+  function display_systems($logfile,$customid=0,$starttime=0,$endtime=9999999999)
+  {
+    $db=logaccess::open_logdb($logfile);
+
+    if($db)
+    {
+      if($customid)
+        $filter=" AND customid=".((int)$customid);
+      else
+        $filter="";
+
+      $logcnts=sqlite_query($db,"SELECT count(*) AS cnt FROM access_logs WHERE unixtime>=".((int)$starttime).
+                                " AND unixtime<=".((int)$endtime).$filter);
+
+      $logcnt=sqlite_fetch_array($logcnts);
+
+      $logs=sqlite_query($db,"SELECT useragent LIKE '%Windows%' AS windows,".
+                              "useragent LIKE '%Linux%' as linux,".
+                              "useragent LIKE '%Mac%' as mac,".
+                              "count(*) AS cnt FROM access_logs ".
+                              "WHERE unixtime>=".((int)$starttime).
+                              " AND unixtime<=".((int)$endtime).$filter." GROUP BY ".
+                              "(useragent LIKE '%Windows%'),".
+                              "(useragent LIKE '%Linux%'),".
+                              "(useragent LIKE '%Mac%') ORDER BY cnt DESC");
+
+      while($log=sqlite_fetch_array($logs))
+      {
+        if($log['windows']==1)
+          $sys="Windows";
+        else if($log['linux']==1)
+          $sys="Linux";
+        else if($log['mac']==1)
+          $sys="Mac";
+        else
+          $sys="Other";
+
+        echo '<div class="bar" style="width:'.(100/$logcnt['cnt']*$log['cnt']).'%">&nbsp;</div>'."\n".
+             '<div class="barlabel">'.$log['cnt'].': '.$sys.'</div>'."\n";
+      }
+    }
+
+    sqlite_close($db);
+  }
+
+  function display_hosts($logfile,$customid=0,$starttime=0,$endtime=9999999999)
+  {
+    $db=logaccess::open_logdb($logfile);
+
+    if($db)
+    {
+      if($customid)
+        $filter=" AND customid=".((int)$customid);
+      else
+        $filter="";
+
+      $logcnts=sqlite_query($db,"SELECT count(*) AS cnt FROM access_logs WHERE unixtime>=".((int)$starttime).
+                                " AND unixtime<=".((int)$endtime).$filter);
+
+      $logcnt=sqlite_fetch_array($logcnts);
+
+      $logs=sqlite_query($db,"SELECT ip,count(*) AS cnt FROM access_logs WHERE unixtime>=".((int)$starttime).
+                                " AND unixtime<=".((int)$endtime).$filter." GROUP BY ip ORDER BY cnt DESC");
+
+      while($log=sqlite_fetch_array($logs))
+      {
+        echo '<div class="bar" style="width:'.(100/$logcnt['cnt']*$log['cnt']).'%">&nbsp;</div>'."\n".
+              '<div class="barlabel">'.$log['cnt'].': '.$log['ip'].'</div>'."\n".
+              '<div class="barlabel">'."\t\t\t\t\t".gethostbyaddr($log['ip']).'</div>'."\n";
+      }
+    }
+
+    sqlite_close($db);
+  }
+
+}
+
+
+
+
+
+
+
+?>
