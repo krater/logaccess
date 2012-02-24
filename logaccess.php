@@ -1,4 +1,4 @@
-<?php
+l<?php
 /*
    Simple PHP access logging class
 
@@ -85,7 +85,7 @@ class logaccess
       while($log=sqlite_fetch_array($logs))
       {
         echo '<div class="bar" style="width:'.(100/$logcnt['cnt']*$log['cnt']).'%">&nbsp;</div>'."\n".
-              '<div class="barlabel">'.$log['cnt'].': <a href="'.$log['path'].'">'.$log['path'].'</a></div>'."\n";
+              '<div class="barlabel">'.strip_tags($log['cnt']).': <a href="'.remove_quotes($log['path']).'">'.strip_tags($log['path']).'</a></div>'."\n";
       }
     }
 
@@ -119,7 +119,7 @@ class logaccess
         while($log=sqlite_fetch_array($logs))
         {
           echo '<div class="bar" style="width:'.(100/$logcnt['cnt']*$log['cnt']).'%">&nbsp;</div>'."\n".
-                '<div class="barlabel">'.$log['cnt'].': <a href="'.$log['referer'].'">'.$log['referer'].'</a></div>'."\n";
+                '<div class="barlabel">'.strip_tags($log['cnt']).': <a href="'.remove_quotes($log['referer']).'">'.strip_tags($log['referer']).'</a></div>'."\n";
         }
       }
       else
@@ -143,7 +143,7 @@ class logaccess
         foreach($domains as $domain => $cnt)
         {
           echo '<div class="bar" style="width:'.(100/$logcnt*$cnt).'%">&nbsp;</div>'."\n".
-                '<div class="barlabel">'.$cnt.': <a href="'.$domain.'">'.$domain.'</a></div>'."\n";
+                '<div class="barlabel">'.strip_tags($cnt).': <a href="'.remove_quotes($domain).'">'.strip_tags($domain).'</a></div>'."\n";
         }
       }
     }
@@ -174,7 +174,7 @@ class logaccess
       while($log=sqlite_fetch_array($logs))
       {
         echo '<div class="bar" style="width:'.(100/$logcnt['cnt']*$log['cnt']).'%">&nbsp;</div>'."\n".
-              '<div class="barlabel">'.$log['cnt'].': '.$log['useragent'].'</div>'."\n";
+              '<div class="barlabel">'.strip_tags($log['cnt']).': '.strip_tags($log['useragent']).'</div>'."\n";
       }
     }
 
@@ -219,7 +219,7 @@ class logaccess
           $sys="Other";
 
         echo '<div class="bar" style="width:'.(100/$logcnt['cnt']*$log['cnt']).'%">&nbsp;</div>'."\n".
-             '<div class="barlabel">'.$log['cnt'].': '.$sys.'</div>'."\n";
+             '<div class="barlabel">'.strip_tags($log['cnt']).': '.$sys.'</div>'."\n";
       }
     }
 
@@ -248,14 +248,19 @@ class logaccess
       while($log=sqlite_fetch_array($logs))
       {
         echo '<div class="bar" style="width:'.(100/$logcnt['cnt']*$log['cnt']).'%">&nbsp;</div>'."\n".
-              '<div class="barlabel">'.$log['cnt'].': '.$log['ip'].'</div>'."\n".
-              '<div class="barlabel">'."\t\t\t\t\t".gethostbyaddr($log['ip']).'</div>'."\n";
+              '<div class="barlabel">'.strip_tags($log['cnt']).': '.strip_tags($log['ip']).'</div>'."\n".
+              '<div class="barlabel">'."\t\t\t\t\t".strip_tags(gethostbyaddr($log['ip'])).'</div>'."\n";
       }
     }
 
     sqlite_close($db);
   }
 
+
+  private function remove_quotes($str)
+  {
+    return str_replace('"','',$str);
+  }
 }
 
 
