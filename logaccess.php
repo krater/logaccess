@@ -1,4 +1,4 @@
-l<?php
+<?php
 /*
    Simple PHP access logging class
 
@@ -85,7 +85,7 @@ class logaccess
       while($log=sqlite_fetch_array($logs))
       {
         echo '<div class="bar" style="width:'.(100/$logcnt['cnt']*$log['cnt']).'%">&nbsp;</div>'."\n".
-              '<div class="barlabel">'.strip_tags($log['cnt']).': <a href="'.remove_quotes($log['path']).'">'.strip_tags($log['path']).'</a></div>'."\n";
+              '<div class="barlabel">'.strip_tags($log['cnt']).': <a href="'.logaccess::remove_quotes($log['path']).'">'.strip_tags($log['path']).'</a></div>'."\n";
       }
     }
 
@@ -119,7 +119,7 @@ class logaccess
         while($log=sqlite_fetch_array($logs))
         {
           echo '<div class="bar" style="width:'.(100/$logcnt['cnt']*$log['cnt']).'%">&nbsp;</div>'."\n".
-                '<div class="barlabel">'.strip_tags($log['cnt']).': <a href="'.remove_quotes($log['referer']).'">'.strip_tags($log['referer']).'</a></div>'."\n";
+                '<div class="barlabel">'.strip_tags($log['cnt']).': <a href="'.logaccess::remove_quotes($log['referer']).'">'.strip_tags($log['referer']).'</a></div>'."\n";
         }
       }
       else
@@ -143,7 +143,7 @@ class logaccess
         foreach($domains as $domain => $cnt)
         {
           echo '<div class="bar" style="width:'.(100/$logcnt*$cnt).'%">&nbsp;</div>'."\n".
-                '<div class="barlabel">'.strip_tags($cnt).': <a href="'.remove_quotes($domain).'">'.strip_tags($domain).'</a></div>'."\n";
+                '<div class="barlabel">'.strip_tags($cnt).': <a href="'.logaccess::remove_quotes($domain).'">'.strip_tags($domain).'</a></div>'."\n";
         }
       }
     }
@@ -257,16 +257,11 @@ class logaccess
   }
 
 
-  private function remove_quotes($str)
+  private static function remove_quotes($str)
   {
     return str_replace('"','',$str);
   }
+
 }
-
-
-
-
-
-
 
 ?>
